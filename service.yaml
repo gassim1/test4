@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: ofintech-dask
+  namespace: ofintech-dask
+spec:
+  type: ClusterIP
+  selector:
+    app: ofintech-dask
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

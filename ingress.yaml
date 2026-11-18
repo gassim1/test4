@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ofintech-dask
+  namespace: ofintech-dask
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod   # TODO: your issuer, or remove
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"  # file uploads (xlsx/docx/PDF)
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts: ["dask.example.com"]
+      secretName: ofintech-dask-tls
+  rules:
+    - host: dask.example.com    # TODO: your domain (also set as APP_BASE_URL and Google OAuth redirect)
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: ofintech-dask
+                port:
+                  name: http

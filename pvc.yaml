@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ofintech-dask-data
+  namespace: ofintech-dask
+spec:
+  accessModes: ["ReadWriteOnce"]
+  # storageClassName: <your-class>   # uncomment to pin a class
+  resources:
+    requests:
+      storage: 10Gi

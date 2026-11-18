@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ofintech-dask-config
+  namespace: ofintech-dask
+data:
+  # TODO: replace these keys with the real names from the repo's .env.example
+  NODE_ENV: "production"
+  PORT: "3000"
+  DATA_DIR: "/data"
+  APP_BASE_URL: "https://dask.example.com"
+  SMTP_HOST: "smtp.example.com"
+  SMTP_PORT: "587"
+  SMTP_FROM: "no-reply@example.com"

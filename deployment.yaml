@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ofintech-dask
+  namespace: ofintech-dask
+  labels:
+    app: ofintech-dask
+spec:
+  replicas: 1            # keep 1 while state is on a RWO volume and the app runs its own scheduler
+  strategy:
+    type: Recreate       # required with a ReadWriteOnce volume
+  selector:
+    matchLabels:
+      app: ofintech-dask
+  template:
+    metadata:
+      labels:
+        app: ofintech-dask
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: ghcr.io/ofintech/ofintech-dask:1.0.0   # TODO: your registry/tag
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: ofintech-dask-config
+            - secretRef:
+                name: ofintech-dask-secrets
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 2Gi    # OCR and file processing can spike
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          # tcpSocket is used because the health endpoint isn't known yet;
+          # switch to httpGet on the real path (e.g. /healthz) once confirmed.
+          startupProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 5
+            failureThreshold: 30
+          readinessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket: { port: http }
+            periodSeconds: 20
+            failureThreshold: 3
+          volumeMounts:
+            - name: data
+              mountPath: /data
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: ofintech-dask-data
+        - name: tmp
+          emptyDir: {}
